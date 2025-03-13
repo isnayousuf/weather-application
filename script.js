@@ -1,68 +1,60 @@
-let weather = {
-    key: "b3c52de4db26b8e7a9cab830ff3938b6",
-    fetchWeather: function (city) {
-      fetch(
-        "https://api.openweathermap.org/data/2.5/weather?q=" +
-        city +
-        "&units=metric&appid=" +
-        this.key
-      ).then((response) => {
-        console.log("weather app res", response)
-        if (!response.ok) {
-          alert("No data found.");
-          throw new Error("No datafound.");
-        }
-        return response.json();
-      }).then((data) => 
-      this.displayWeather(data)
-      
-      );
-    },
-    displayWeather: function (data) {
-      const { name } = data;
-      console.log("here is isna",data)
-      const { description } = data.weather[0];
-  
-      // const { icon, description } = data.weather[0];
-      const { temp, humidity } = data.main;
-      const { speed } = data.wind;
-      const pressure = data.main.pressure;
-      const tempMax = data.main.temp_max;
-      const tempMin = data.main.temp_min;
-      
-  
-      document.querySelector(".city").innerText = "Weather in " + name;
-      document.querySelector(".description").innerText = description;
-      document.querySelector(".temp").innerText = temp + "°C";
-      document.querySelector(".humidity").innerText =
-        "Humidity: " + humidity + "%";
-  
-      // document.querySelector(".pressure").innerHTML = "Pressure:" + pressure;
-      document.querySelector(".t-max").innerHTML = "Max. Temperature:" + tempMax + "°C";
-  
-      document.querySelector(".t-min").innerHTML = "Min. Temperature:" + tempMin + "°C";
-  
-      document.querySelector(".w-speed").innerText =
-        "Wind speed: " + speed + " km/h";
-      document.querySelector(".weather").classList.remove("loading");
-      
-    },
-    search: function () {
-      this.fetchWeather(document.querySelector(".s-bar").value);
-    },
-  };
-  document.querySelector("#btn").addEventListener('click', function () {
-    weather.search();
-  });
-  document.querySelector(".s-bar").addEventListener("keyup", function (event) {
-    if (event.key == "Enter") {
-        weather.search();
-      }
-    });
-  
-  weather.fetchWeather("srinagar");
-  
-  
-  
-  
-  
+const inputBox = document.querySelector(".input-box");
+const searchBtn = document.getElementById("searchBtn");
+const weather_img = document.querySelector(".weather-img");
+const temperature = document.querySelector(".temperature");
+const description = document.querySelector(".description");
+const humidity = document.getElementById("humidity");
+const wind_speed = document.getElementById("wind-speed");
+
+const location_not_found = document.querySelector(".location-not-found");
+
+const weather_body = document.querySelector(".weather-body");
+
+async function checkWeather(city) {
+  const api_key = "4cd0eee81294c867b4bc4cfc64e998c5";
+  const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${api_key}`;
+
+  const weather_data = await fetch(`${url}`).then((response) =>
+    response.json()
+  );
+
+  if (weather_data.cod === `404`) {
+    location_not_found.style.display = "flex";
+    weather_body.style.display = "none";
+    console.log("error");
+    return;
+  }
+
+  console.log("run");
+  location_not_found.style.display = "none";
+  weather_body.style.display = "flex";
+  temperature.innerHTML = `${Math.round(weather_data.main.temp - 273.15)}°C`;
+  description.innerHTML = `${weather_data.weather[0].description}`;
+
+  humidity.innerHTML = `${weather_data.main.humidity}%`;
+  wind_speed.innerHTML = `${weather_data.wind.speed}Km/H`;
+
+  switch (weather_data.weather[0].main) {
+    case "Clouds":
+      weather_img.src = "/assets/cloud.png";
+      break;
+    case "Clear":
+      weather_img.src = "/assets/clear.png";
+      break;
+    case "Rain":
+      weather_img.src = "/assets/rain.png";
+      break;
+    case "Mist":
+      weather_img.src = "/assets/mist.png";
+      break;
+    case "Snow":
+      weather_img.src = "/assets/snow.png";
+      break;
+  }
+
+  console.log(weather_data);
+}
+
+searchBtn.addEventListener("click", () => {
+  checkWeather(inputBox.value);
+});
